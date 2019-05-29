@@ -4,21 +4,19 @@ import Layout from '../components/layout'
 
 import blogStyles from '../styles/blog.module.scss'
 
-const BlogPage = () => {
+const GhostBlogPage = () => {
 
     const data = useStaticQuery(graphql`
         query {
-            allMarkdownRemark {
+            allGhostPost( skip:0, limit:20) {
+                totalCount
                 edges {
                     node {
                         id
-                        frontmatter {
-                            title
-                            date
-                        }
-                    fields {
+                        created_at(formatString:"MMMM do, YYYY")
                         slug
-                    }
+                        title
+                        excerpt
                     }
                 }
             }
@@ -27,14 +25,14 @@ const BlogPage = () => {
 
     return (
         <Layout>
-            <h1>Blog</h1>
+            <h1>Ghost Blog</h1>
             <ol className={blogStyles.posts}>
-                {data.allMarkdownRemark.edges.map((edge) => {
+                {data.allGhostPost.edges.map((edge) => {
                     return (
                         <li className={blogStyles.post} key={edge.node.id}>
-                            <Link to={`/blog/${edge.node.fields.slug}`}>
-                                <h2>{edge.node.frontmatter.title}</h2>
-                                <p>{edge.node.frontmatter.date}</p>
+                            <Link to={`/ghostblog/${edge.node.slug}`}>
+                                <h2>{edge.node.title}</h2>
+                                <p>{edge.node.created_at}</p>
                             </Link>
                         </li>
                     )
@@ -45,4 +43,4 @@ const BlogPage = () => {
     )
 }
 
-export default BlogPage
+export default GhostBlogPage

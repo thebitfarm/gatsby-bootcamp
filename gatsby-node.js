@@ -24,7 +24,9 @@ module.exports.onCreateNode = ({ node, actions }) => {
 module.exports.createPages = async ({ graphql, actions}) => {
     const { createPage } = actions
     const blogPostTemplate = path.resolve(`./src/templates/blog.js`)
-    const res = await graphql(`
+    const ghostPostTemplate = path.resolve(`./src/templates/ghostblog.js`)
+    const [mdData, ghostData] = await Promise.all([
+        graphql(`
         query {
             allMarkdownRemark {
                 edges {
@@ -37,14 +39,40 @@ module.exports.createPages = async ({ graphql, actions}) => {
                 }
             }
         }
-    `)
+    `), 
+        graphql(`
+        query {
+            allGhostPost( skip:0, limit:20, sort: { fields:created_at, order: DESC} ) {
+                totalCount
+                edges {
+                    node {
+                        id
+                        slug
+                        title
+                        excerpt
+                    }
+                }
+            }
+        }
+    `)])
 
-    res.data.allMarkdownRemark.edges.forEach((edge) => {
+    mdData.data.allMarkdownRemark.edges.forEach((edge) => {
         createPage({
              component: blogPostTemplate,
              path: `/blog/${edge.node.fields.slug}`,
              context: {
                  slug: edge.node.fields.slug,
+                 id: edge.node.id
+             }
+        })
+    })
+
+    ghostData.data.allGhostPost.edges.forEach((edge) => {
+        createPage({
+             component: ghostPostTemplate,
+             path: `/ghostblog/${edge.node.slug}`,
+             context: {
+                 slug: edge.node.slug,
                  id: edge.node.id
              }
         })
